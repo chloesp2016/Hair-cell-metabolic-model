@@ -1,0 +1,149 @@
+def METABOLIC(x,t): #time: minutes
+    
+    ## Model states =========================================================================================================
+    ACA = x[0]
+    AKG = x[1]
+    AMP = x[2]
+    ANPs = x[3]
+    ATP = x[4]
+    CIT = x[5]
+    F6P = x[6]
+    FBP = x[7]
+    FUM = x[8]
+    G3P = x[9]
+    G6P = x[10]
+    GLC = x[11]
+    GLCe = x[12]
+    GLN = x[13]
+    GLNe = x[14]
+    GLT = x[15]
+    GLTe = x[16]
+    GLY = x[17]
+    LAC = x[18]    
+    LACe = x[19]
+    MAL = x[20]
+    NADH = x[21]
+    NADPH = x[22]
+    O2 = x[23]
+    O2e = x[24]
+    OAA = x[25]
+    PCr = x[26]
+    PEP = x[27]
+    PYR = x[28]
+    PYRe = x[29]
+    R5P = x[30]
+    SUC = x[31]
+    V = x[32]
+    QH2 = x[33]
+    
+    ## Model Variables ===========================================================================================
+
+    Cells = Cells_0  #L # Transport # from lab (average)                  
+    CoA = CoA_T-ACA  #uM # TCA #   
+    Cr = Cr_T-PCr  #uM # Creatine buffer #   
+
+    ## # Energy #uM
+    ADP = ANP_T-ATP-AMP-ANPs    
+    ANP = ANP_T-ANPs  
+    NAD = NAD_T-NADH        
+    NADP = NADP_T-NADPH
+    Q = Q_T-QH2
+
+    ## # Ratio #    
+    ATP_ANP_T = ATP/ANP_T      
+    NADH_NAD = NADH/NAD           
+    NADH_NAD_T = NADH/NAD_T      
+    NADPH_NADP = NADPH/NADP    
+    NADPH_NADP_T = NADPH/NADP_T  
+    PCR_Cr_T = PCr/Cr_T           
+    R_volume = Cells/V  
+
+    ##
+    C_glc = EVAP(K_evap, GLCe, V)              
+    C_gln = EVAP(K_evap, GLNe, V)            
+    C_glt = EVAP(K_evap, GLTe, V)           
+    C_lac = EVAP(K_evap, LACe, V)
+    C_pyr = EVAP(K_evap, PYRe, V) 
+    T_glc = TMM(Vm_t_glc, Km_t_glc, GLCe, GLC)    
+    T_gln = TMM(Vm_t_gln, Km_t_gln, GLN, GLNe)    
+    T_glt = TMM(Vm_t_glt, Km_t_glt, GLT, GLTe)   
+    T_lac = TMM(Vm_t_lac, Km_t_lac, LAC, LACe)
+    T_pyr = TMM(Vm_t_pyr, Km_t_pyr, PYR, PYRe)
+    T_o2 = K_t_o2*DIFF(O2e, O2)                                                      
+    T_o2e = 1-PULSE(A_p_o2, t, T_p_on_o2, F_p_on_o2, P_p_on_o2, T_p_off_o2, F_p_off_o2, P_p_off_o2)     
+    V_ak = RMM(Vm_ak_f, Km_ak_atp, ATP, Km_ak_amp, AMP, 0, 1, Vm_ak_r, Km_ak_adp, ADP, 0, 1, 0, 1)    
+    V_atpase = Vm_atpase*MM(Km_atpase_atp, ATP)*PULSE(A_p_atpase, t, T_p_on_atpase, F_p_on_atpase, P_p_on_atpase, T_p_off_atpase, 
+                                                      F_p_off_atpase, P_p_off_atpase)                                          
+    V_cdh = Vm_cdh*MM(Km_cdh_cit, CIT)*MM(Km_cdh_nad, NAD)*MM(Km_cdh_nadp, NADP)                               
+    V_ck = RMM(Vm_ck_f, Km_ck_cr, Cr,Km_ck_atp, ATP ,0, 1, Vm_ck_r, Km_ck_pcr, PCr, Km_ck_adp, ADP, 0, 1)      
+    V_cs = Vm_cs*MM(Km_cs_aca, ACA)*MM(Km_cs_oaa, OAA)  
+    V_cx1 = Vm_cx1*MM(Km_cx1_nadh, NADH)*MM(Km_cx1_q, Q)
+    V_destress = Vm_destress*MM(Km_destress_anps, ANPs)            
+    V_evap = K_evap                                              
+    V_fai = RMM(Vm_fai_f, Km_fai_fbp, FBP, 0, 1, 0, 1, Vm_fai_r, Km_fai_g3p, G3P, 0, 1, 0, 1) 
+    V_fbp = Vm_fbp * MM(Km_fbp_fbp, FBP)                            
+    V_fh = Vm_fh * MM(Km_fh_fum, FUM)                             
+    V_g6d = Vm_g6d * MM(Km_g6d_g6p, G6P)                     
+    V_gns = RMM(Vm_gns_f, Km_gns_glt, GLT, 0, 1, 0, 1, Vm_gns_r, Km_gns_gln, GLN, 0, 1, 0, 1)                   
+    V_gtd = RMM(Vm_gtd_f, Km_gtd_glt, GLT, Km_gtd_nad, NAD, 0, 1, Vm_gtd_r, Km_gtd_akg, AKG, Km_gtd_nadh, NADH, 0, 1)    
+    V_gyp = Vm_gyp * MM(Km_gyp_gly, GLY)                                                               
+    V_gys = Vm_gys * MM(Km_gys_g6p, G6P) * MM(Km_gys_atp, ATP) * SWITCH_I(GLY, TRH_i_gys_gly, F_i_gys_gly)   
+    V_hk = Vm_hk * MM(Km_hk_glc, GLC) * MM(Km_hk_atp, ATP) * SWITCH_I(G6P, TRH_i_hk_g6p, F_i_hk_g6p)  
+    V_iso = RMM(Vm_iso_f, Km_iso_g6p, G6P, 0, 1, 0, 1, Vm_iso_r, Km_iso_f6p, F6P, 0, 1, 0, 1)     
+    V_kdh = Vm_kdh * MM(Km_kdh_akg, AKG) * MM(Km_kdh_adp, ADP) * MM(Km_kdh_nad, NAD)         
+    V_ldh = RMM(Vm_ldh_f, Km_ldh_lac, LAC, Km_ldh_nad, NAD, 0, 1, Vm_ldh_r, Km_ldh_pyr, PYR, Km_ldh_nadh, NADH, 0, 1)       
+    V_leak = Vm_leak * MM(Km_leak_qh2, QH2) * PULSE(A_p_leak, t, T_p_on_leak, F_p_on_leak, P_p_on_leak, T_p_off_leak, 
+                                                    F_p_off_leak, P_p_off_leak)                                                            
+    V_mdh = Vm_mdh * MM(Km_mdh_mal, MAL) * MM(Km_mdh_nad, NAD)                                                       
+    V_op = Vm_op * MM(Km_op_qh2, QH2) * MM(Km_op_adp, ADP) * MM(Km_op_o2, O2) * RATIO(ADP, ATP)                          
+    V_os = V_op * (1 - Eta_op) * PULSE(A_p_os, t, T_p_on_os, F_p_on_os, P_p_on_os, T_p_off_os, F_p_off_os, P_p_off_os)    
+    V_pc = Vm_pc * MM(Km_pc_pyr, PYR) * MM(Km_pc_atp, ATP)                    
+    V_pdh = Vm_pdh * MM(Km_pdh_pyr, PYR) * MM(Km_pdh_nad, NAD) * MM(Km_pdh_coa, CoA)        
+    V_pfk = Vm_pfk * MM(Km_pfk_f6p, F6P) * MM(Km_pfk_atp, ATP) * HILL(Ki_pfk_atp, ATP, nH_pfk) 
+    V_pgk = Vm_pgk * MM(Km_pgk_g3p, G3P) * MM(Km_pgk_adp, ADP)   
+    V_pk = Vm_pk * MM(Km_pk_pep, PEP) * MM(Km_pk_adp, ADP)     
+    V_ppp = Vm_ppp * MM(Km_ppp_r5p, R5P)                    
+    V_sdh = Vm_sdh * MM(Km_sdh_suc, SUC) * MM(Km_sdh_nad, NAD)
+    V_stress = Vm_stress * MM(Km_stress_atp, ATP) * (1 - SWITCH_I(ATP, TRH_i_stress_atp, F_i_stress_atp)) * (-1 + PULSE(A_p_leak, t, T_p_on_leak, F_p_on_leak, P_p_on_leak, T_p_off_leak, F_p_off_leak, P_p_off_leak))
+
+    
+    ##Model states====================================================================================================================
+    
+    dACAdt = + V_pdh - V_cs                                                                                                                                                                           
+    dAKGdt = + V_cdh - V_kdh + V_gtd                                                                                                                                                                    
+    dAMPdt = - V_ak + V_destress                                                                                                                                                                      
+    dANPsdt = + V_stress - V_destress                                                                                                                                                                 
+    dATPdt = - V_hk - V_pfk + V_pgk + V_pk - V_pc + V_kdh - V_gns - V_gys - V_ck + Eta_op*n_op_atp*V_op-V_atpase-V_ak-V_stress                                                                                        
+    dCITdt = + V_cs -  V_cdh                                                                                                                                                                           
+    dF6Pdt = + V_iso - V_pfk + n_ppp_f6p*V_ppp+V_fbp                                                                                                                                                    
+    dFBPdt = + V_pfk - V_fai - V_fbp                                                                                                                                                                    
+    dFUMdt = + V_sdh - V_fh                                                                                                                                                                           
+    dG3Pdt = + n_fai_g3p*V_fai - V_pgk + V_ppp                                                                                                                                                          
+    dG6Pdt = + V_hk - V_iso - n_ppp_g3p*V_g6d - V_gys + V_gyp                                                                                                                                               
+    dGLCdt = + T_glc - V_hk                                                                                                                                                                           
+    dGLCedt = - R_volume*T_glc + C_glc                                                                                                                                                                
+    dGLNdt = - T_gln + V_gns                                                                                                                                                                          
+    dGLNedt = + R_volume*T_gln + C_gln                                                                                                                                                                
+    dGLTdt = - T_glt - V_gtd - V_gns                                                                                                                                                                    
+    dGLTedt = + R_volume*T_glt + C_glt                                                                                                                                                                
+    dGLYdt = + V_gys - V_gyp                                                                                                                                                                          
+    dLACdt = - T_lac - V_ldh                                                                                                                                                                          
+    dLACedt = + R_volume*T_lac + C_lac                                                                                                                                                                
+    dMALdt = + V_fh - V_mdh                                                                                                                                                                           
+    dNADHdt = + V_pgk + V_ldh + V_pdh + V_cdh + V_kdh + n_sdh_nadh*V_sdh + V_mdh + V_gtd - V_cx1                                                                                                              
+    dNADPHdt = + n_cdh_nadph*V_cdh - V_os                                                                                                                                                             
+    dO2dt = + T_o2 - n_op_o2*V_op - n_leak_o2*V_leak                                                                                                                                                    
+    dO2edt = + T_o2e                                                                                                                                                                                
+    dOAAdt = + V_mdh - V_cs + V_pc                                                                                                                                                                      
+    dPCrdt = + V_ck                                                                                                                                                                                 
+    dPEPdt = + V_pgk - V_pk                                                                                                                                                                           
+    dPYRdt = + V_pk - V_pdh - V_pc + V_ldh - T_pyr
+    dPYRedt = + R_volume*T_pyr + C_pyr  
+    dR5Pdt = + V_g6d - V_ppp                                                                                                                                                                          
+    dSUCdt = + V_kdh - V_sdh                                                                                                                                                                          
+    dVdt = - V_evap
+    dQH2dt = + V_cx1 - V_leak -V_op 
+
+    return [dACAdt, dAKGdt, dAMPdt, dANPsdt, dATPdt, dCITdt, dF6Pdt, dFBPdt, dFUMdt, dG3Pdt, dG6Pdt, dGLCdt, 
+            dGLCedt, dGLNdt, dGLNedt, dGLTdt, dGLTedt, dGLYdt, dLACdt, dLACedt, dMALdt, dNADHdt, dNADPHdt, dO2dt, 
+            dO2edt, dOAAdt, dPCrdt, dPEPdt, dPYRdt, dPYRedt, dR5Pdt, dSUCdt, dVdt, dQH2dt]
