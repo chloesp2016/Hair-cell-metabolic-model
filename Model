@@ -147,3 +147,14 @@ def METABOLIC(x,t): #time: minutes
     return [dACAdt, dAKGdt, dAMPdt, dANPsdt, dATPdt, dCITdt, dF6Pdt, dFBPdt, dFUMdt, dG3Pdt, dG6Pdt, dGLCdt, 
             dGLCedt, dGLNdt, dGLNedt, dGLTdt, dGLTedt, dGLYdt, dLACdt, dLACedt, dMALdt, dNADHdt, dNADPHdt, dO2dt, 
             dO2edt, dOAAdt, dPCrdt, dPEPdt, dPYRdt, dPYRedt, dR5Pdt, dSUCdt, dVdt, dQH2dt]
+
+#====================================================================================
+#initial condition
+x0 = [ACA_0, AKG_0, AMP_0, ANPs_0, ATP_0, CIT_0, F6P_0, FBP_0, FUM_0, G3P_0, 
+      G6P_0, GLC_0, GLCe_0, GLN_0, GLNe_0, GLT_0, GLTe_0, GLY_0, LAC_0, LACe_0, 
+      MAL_0, NADH_0, NADPH_0, O2_0, O2e_0, OAA_0, PCr_0, PEP_0, PYR_0, PYRe_0,
+      R5P_0, SUC_0, V_0, QH2_0]
+
+t = np.linspace(0,120,12001)
+
+x = odeint(METABOLIC, x0, t)
