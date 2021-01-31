@@ -1,0 +1,52 @@
+##MODEL FUNCTIONS=============================================================================================================
+
+def MM(K,S):
+    return S/(K+S)
+
+def TMM(Vm, Km, Si, Se):
+    return Vm*(Si/(Si+Km)-Se/(Se+Km))
+
+def RMM(Vmf, Kmf1, Sf1, Kmf2, Sf2, Kmf3, Sf3, Vmr, Kmr1, Sr1, Kmr2, Sr2, Kmr3, Sr3):
+    return Vmf*(Sf1/(Sf1+Kmf1))*(Sf2/(Sf2+Kmf2))*(Sf3/(Sf3+Kmf3))-Vmr*(Sr1/(Sr1+Kmr1))*(Sr2/(Sr2+Kmr2))*(Sr3/(Sr3+Kmr3))
+
+def RMA(Kf, Sf1, Sf2, Sf3, Kr, Sr1, Sr2, Sr3):
+    return Kf*Sf1*Sf2*Sf3-Kr*Sr1*Sr2*Sr3
+
+def DIFF(Se, Si):
+    return Se-Si                                                                                                                                                                             
+
+def PMM(Km, S, n):
+    return (S**n/(Km**n+S**n))                                                                                                                                                                    
+
+def EVAP(K_evap, Se, V):
+    return (K_evap*Se/V)                                                                                                                                                                 
+
+def RATIO(UPPER, LOWER):
+    return UPPER/LOWER
+
+def HILL(Ki, S, n):
+    return  1/(1+(S/Ki)**n)
+
+def SWITCH_I(S, St, a):
+    return 1-1/(1+np.exp(-a*(S-St)))
+
+def SWITCH_A(S, St, a):
+    return 1/(1+np.exp(-a*(S-St)))
+
+def unitpulseSB(time,t1,t2):
+    if type(time)==float:
+        if t1 < time < t2:
+            unitpulse = 1 
+        else:
+            unitpulse = 0
+    else:
+        unitpulse = np.array([])
+        for i in np.arange(len(time)):
+            if t1 < time[i] < t2:
+                unitpulse = np.append(unitpulse,1) 
+            else:
+                unitpulse = np.append(unitpulse,0)
+    return unitpulse
+
+def PULSE(A, t0, t1, a1, p1, t2, a2, p2):
+    return (1+unitpulseSB(t0,t1,t2)*A*(1/(1+((1-p1)/p1)*np.exp(-a1*(t0-t1)))-1/(1+((1-p2)/p2)*np.exp(-a2*(t0-t2)))))
